@@ -18,7 +18,6 @@ const style = {
 };
 
 
-
 function DeleteModal(data, open, setOpen) {
     open = data.open;
     setOpen = data.setOpen;
