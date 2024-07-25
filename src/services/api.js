@@ -1,11 +1,8 @@
 const api_url = 'http://212.113.102.189:7000';
 
 
-export async function register(user){
-    if (!user || !user['login'] || !user['password'])
-        throw new Error('Необходимо ввести логин и пароль!')
-
-    const response = await fetch(api_url + '/auth/register',{
+export async function register(user) {
+    const response = await fetch(api_url + '/auth/register', {
         'method': 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -14,16 +11,17 @@ export async function register(user){
     })
 
     const data = await response.json();
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('login', user['login']);
-    console.log(data);
+    if (data.token !== undefined) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('login', user['login']);
+    }
+    return data;
 }
 
-export async function login(user){
-    if (!user || !user['login'] || !user['password'])
-        throw new Error('Необходимо ввести логин и пароль!')
+export async function login(user) {
 
-    const response = await fetch(api_url + '/auth/login',{
+
+    const response = await fetch(api_url + '/auth/login', {
         'method': 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -32,20 +30,30 @@ export async function login(user){
     })
 
     const data = await response.json();
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('login', user['login']);
+
+    if (data.token !== undefined) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('login', user['login']);
+    }
+    return data
 }
 
-export async function newFile(folderId, file){
+export async function newFile(parentId, file) {
     let token = localStorage.getItem('token');
 
-    const response = await fetch(api_url + '/drive/files',{
-        'method': 'POST',
+    let formData = new FormData();
+    formData.append('folderId', parentId);
+    formData.append('file', file);
+
+    console.log('formData', formData.getAll('folderId'), formData.getAll('file'))
+
+    const response = await fetch(api_url + '/drive/files', {
+        method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json;charset=utf-8'
+            'Content-Type': 'multipart/form-data',
         },
-        body: JSON.stringify({folderId: folderId, file: file})
+        body: formData
     })
 
     let data = await response.json();
@@ -53,9 +61,9 @@ export async function newFile(folderId, file){
     return data.data;
 }
 
-export async function deleteFile(id){
+export async function deleteFile(id) {
     let token = localStorage.getItem('token');
-    const response = await fetch(api_url + `/drive/files/${id}`,{
+    const response = await fetch(api_url + `/drive/files/${id}`, {
         'method': 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -68,9 +76,9 @@ export async function deleteFile(id){
     return data.data;
 }
 
-export async function showFolder(id){
+export async function showFolder(id) {
     let token = localStorage.getItem('token');
-    const response = await fetch(api_url + `/drive/folder/${id}`,{
+    const response = await fetch(api_url + `/drive/folder/${id}`, {
         'method': 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -84,24 +92,32 @@ export async function showFolder(id){
     return data.data;
 }
 
-export async function editFolder(id, parentId, name){
+export async function editFolder(id, newParentId,newName) {
+    console.log('Edit api:', id, newName, newParentId);
+
     let token = localStorage.getItem('token');
-    const response = await fetch(api_url + `/drive/folder/${id}`,{
-        'method': 'PATCH',
+    const body = {
+        parentId: newParentId,
+        name: newName
+    }
+    const response = await fetch(api_url + `/drive/folder/${id}`, {
+        method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`,
-            // 'Content-Type': 'application/json;charset=utf-8'
+            'Content-Type': 'application/json;charset=utf-8'
         },
-        body: JSON.stringify({parentId: parentId, name: name})
+        body: JSON.stringify(body)
     })
     let data = await response.json();
-    console.log(data.data);
-    return data.data;
+
+    console.log(data);
+    console.log(id, body);
+    return data;
 }
 
-export async function deleteFolder(id){
+export async function deleteFolder(id) {
     let token = localStorage.getItem('token');
-    const response = await fetch(api_url + `/drive/folder/${id}`,{
+    const response = await fetch(api_url + `/drive/folder/${id}`, {
         'method': 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -113,10 +129,10 @@ export async function deleteFolder(id){
     return data.data;
 }
 
-export async function newFolder(parentId, name){
+export async function newFolder(parentId, name) {
     let token = localStorage.getItem('token');
 
-    const response = await fetch(api_url + `/drive/folder`,{
+    const response = await fetch(api_url + `/drive/folder`, {
         'method': 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,

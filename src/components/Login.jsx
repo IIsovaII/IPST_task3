@@ -6,35 +6,46 @@ import { useNavigate } from "react-router-dom";
 
 
 function Login() {
-    const [error, setError] = useState("");
+
 
     const [loginVal, setLogin] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [message, setMessage] = useState('');
+
+    // let logData = {};
 
     const handleShowPassword = () => setShowPassword((show) => !show);
 
     const navigate = useNavigate();
     const handleLogin = async () => {
-        try {
-            let user = { login: loginVal, password: password };
-            await login(user);
-            showFolder('root').then(console.log);
-            navigate('/')
-        } catch (error) {
-            console.error(error);
-            setError(error.message);
+        let user = { login: loginVal, password: password };
+        if (!user || !user['login'] || !user['password']){
+            setMessage('Необходимо ввести логин и пароль!')
+            return;
         }
+
+        login(user).then((data) => {
+            console.log(data);
+            if (data['token'] !== undefined)
+                navigate('/')
+
+            else
+                setMessage(data.message);
+        });
+
     };
 
     const handleReg = async () => {
-        try {
-            let user = { login: loginVal, password: password };
-            await register(user);
-        } catch (error) {
-            console.error(error);
-            setError(error.message);
+        let user = { login: loginVal, password: password };
+
+        if (!user || !user['login'] || !user['password']){
+            setMessage('Необходимо ввести логин и пароль!')
+            return;
         }
+
+        await register(user);
+        navigate('/')
     };
 
 
@@ -56,7 +67,7 @@ function Login() {
                     variant="outlined"
                     fullWidth
                     margin="dense">
-                    <InputLabel>Password</InputLabel>
+                    <InputLabel required>Password</InputLabel>
                     <OutlinedInput
                         type={showPassword ? "text" : "password"}
                         label="Password"
@@ -77,14 +88,13 @@ function Login() {
                     Log in
                 </Button>
 
-                {/*<Typography variant={'h6'}>New to us?</Typography>*/}
                 <Button variant="outlined" color="primary" onClick={handleReg}  margin='normal'>
                     Sign up
                 </Button>
 
-            </Box>
+                <Typography color = 'error'>{message}</Typography>
 
-            {error && <Typography color="error">{error}</Typography>}
+            </Box>
         </Container>
     );
 }

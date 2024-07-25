@@ -1,8 +1,5 @@
 import React, {useState} from 'react';
-import { Modal, Box, TextField, Button } from '@mui/material';
-import App from "../App";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import {Modal, Box, TextField, Button, Typography} from '@mui/material';
 import {newFolder, showFolder} from "../services/api";
 
 const style = {
@@ -24,20 +21,21 @@ async function setNewFolder(name, parentId= 'root'){
     showFolder(parentId).then(console.log);
 }
 
-function AddFolderModal(Id) {
+export default function AddFolderModal(data) {
+    const open = data.open;
+    const setOpen = data.setOpen;
+    const Id = data.Id;
+
     const [nameVal, setName] = useState("");
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
+
+    async function AddFolder(name, id){
+        await setNewFolder(name, id);
         setOpen(false);
-    };
+    }
 
     return (
-        <>
-            <Button onClick={handleOpen}><CreateNewFolderIcon />Add folder</Button>
-            <Modal open={open} onClose={handleClose}>
+        <Modal open={open} onClose={() => {setOpen(false)}}>
+            <div>
                 <Box sx={{...style, width: 300}}>
                     <h2>Add folder</h2>
 
@@ -55,13 +53,11 @@ function AddFolderModal(Id) {
                         onChange={(e) => setName(e.target.value)}
                     />
 
-                    <Button onClick={() => {setOpen(false); setNewFolder(nameVal, Id.Id)}}>Ok</Button>
+                    <Button onClick={() => AddFolder(nameVal, Id)}>Ok</Button>
                     <Button onClick={() => setOpen(false)}>Отмена</Button>
                 </Box>
-            </Modal>
-        </>
+            </div>
+        </Modal>
     );
+
 }
-
-
-export default AddFolderModal;
